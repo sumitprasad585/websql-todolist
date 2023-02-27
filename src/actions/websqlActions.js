@@ -1,23 +1,26 @@
 import * as types from "../constants/websqlConstants";
 import * as syncTypes from '../constants/syncConstants';
-import { getTodolistSuccess } from "./todolistActions";
+import { addTodo, getTodolist, getTodolistSuccess } from "./todolistActions";
+import { v4 as uuid } from 'uuid';
+import { syncOff, syncOn } from "./syncActions";
 
-let dbName = 'todoappDB';
+let dbName = 'temppDB';
 let dbDesc = 'Todolist database';
+let dbVersion = '1.0';
 let size = 5 * 1024 * 1024; // 5 mega bytes
 let db;
 let offlineItem = 0;
 
 export function openDB() {
     return (dispatch, getState) => {
-        db = window.openDatabase(dbName, '', dbDesc, size, () => {
+        db = window.openDatabase(dbName, dbVersion, dbDesc, size, () => {
             console.log('database created successfully');
             dispatch({ type: types.CREATE_DB_SUCCESS });
         });
 
         db.transaction(tx => {
                 tx.executeSql('CREATE TABLE IF NOT EXISTS http_response(url TEXT NOT NULL PRIMARY KEY, res TEXT)');
-                tx.executeSql('CREATE TABLE IF NOT EXISTS sync(url TEXT NOT NULL, method TEXT, body TEXT)');
+                tx.executeSql('CREATE TABLE IF NOT EXISTS sync(id TEXT PRIMARY KEY, url TEXT NOT NULL, method TEXT, body TEXT)');
             },
             err => {
                 console.error('Error creating database tables', err);
@@ -90,7 +93,7 @@ export function getFromDB() {
 export function addToSync(url, method, body, callback) {
     return (dispatch, getState) => {
         db.transaction(tx => {
-            tx.executeSql('REPLACE INTO sync(url, method, body) VALUES(?,?,?)', [url, method, JSON.stringify(body)]);
+            tx.executeSql('REPLACE INTO sync(id, url, method, body) VALUES(?,?,?,?)', [uuid(), url, method, JSON.stringify(body)]);
         },
         err => {
             console.error('Error adding data to sync table', err);
@@ -100,6 +103,61 @@ export function addToSync(url, method, body, callback) {
             console.log('Added to sync table successfully');
             dispatch({ type: syncTypes.ADD_TO_SYNC_SUCCESS });
             if(callback) callback();
+            localStorage.setItem('syncRequired', 'true');
         })
+    }
+}
+
+export function deleteFromSync(id) {
+    return (dispatch, getState) => {
+        db.transaction(tx => {
+            tx.executeSql('DELETE FROM sync WHERE id = ?', [id]);
+        },
+        err => {
+            console.error('Error deleting from sync table', err);
+            dispatch({ type: types.DELETE_DATA_ERROR, err: err.message });
+        },
+        () => {
+            console.log('Deleted from sync table successfully');
+            dispatch({ type: types.DELETE_DATA_SUCCESS });
+        });
+    }
+}
+
+export function syncData() {
+    return (dispatch, getState) => {
+        if(!window.navigator.onLine) {
+            return;
+        } else {
+            db.transaction(tx => {
+                tx.executeSql('SELECT * FROM sync', [], (tx, result) => {
+                    if(result.rows.length === 0) {
+                        return;
+                    } else {
+                        dispatch(syncOn());
+                        for(let i = 0; i < result.rows.length; i++) {
+                            let syncItem = result.rows[i];
+                            let id = syncItem.id;
+                            let todo = JSON.parse(syncItem.body);
+                            dispatch(addTodo(todo, () => {
+                                dispatch(getTodolist());
+                                dispatch(deleteFromSync(id));
+                            }));
+                        }
+                    }
+                })
+            },
+            err => {
+                console.error('Error syncing data', err);
+                dispatch({ type: syncTypes.SYNC_ERROR, err: err.message });
+            },
+            () => {
+                console.log('SYNC WAS SUCCESSFUL');
+                dispatch({ type: syncTypes.SYNC_SUCCESS });
+                setTimeout(() => {
+                    dispatch(syncOff())
+                }, 5000);
+            });
+        }
     }
 }

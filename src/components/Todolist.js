@@ -4,7 +4,7 @@ import "./Todolist.css";
 import CreateTodoForm from "./CreateTodoForm";
 import { getTodolist } from "../actions/todolistActions";
 import Todo from './Todo';
-import { openDB } from "../actions/websqlActions";
+import { openDB, syncData } from "../actions/websqlActions";
 
 export class Todolist extends Component {
   componentWillMount() {
@@ -15,13 +15,18 @@ export class Todolist extends Component {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch(getTodolist());
+    const intervalID = setInterval(() => {
+        dispatch(syncData());
+    }, 60000);
   }
 
   render() {
-    const { dispatch, todolist } = this.props;
+    const { dispatch, todolist, sync } = this.props;
     const empty = todolist && todolist.length === 0;
+    const { syncOn } = sync;
     return (
       <div className="Todolist">
+        { syncOn && <div className="sync-block">Sync in progress. Please wait...</div> }
         <div>
           <header>
             <h1>Add a todo</h1>
@@ -43,6 +48,7 @@ export class Todolist extends Component {
 const mapStateToProps = (state) => {
   return {
     todolist: state.todolistReducer.todolist,
+    sync: state.syncReducer
   };
 };
 
