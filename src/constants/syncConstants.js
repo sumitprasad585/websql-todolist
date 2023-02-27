@@ -1,0 +1,3 @@
+export const ADD_TO_SYNC = 'ADD_TO_SYNC';
+export const ADD_TO_SYNC_SUCCESS = 'ADD_TO_SYNC_SUCCESS';
+export const ADD_TO_SYNC_ERROR = 'ADD_TO_SYNC_ERROR';

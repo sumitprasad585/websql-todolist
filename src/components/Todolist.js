@@ -4,13 +4,9 @@ import "./Todolist.css";
 import CreateTodoForm from "./CreateTodoForm";
 import { getTodolist } from "../actions/todolistActions";
 import Todo from './Todo';
-import { getFromDB, openDB } from "../actions/websqlActions";
+import { openDB } from "../actions/websqlActions";
 
 export class Todolist extends Component {
-  constructor(props) {
-    super(props);
-  }
-
   componentWillMount() {
     const { dispatch } = this.props;
     dispatch(openDB());

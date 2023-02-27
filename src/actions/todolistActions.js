@@ -1,6 +1,6 @@
 import request from 'superagent';
 import * as types from '../constants/todolistConstants';
-import { getFromDB, storeToDB } from './websqlActions';
+import { addToSync, getFromDB, storeToDB } from './websqlActions';
 
 export function getTodolistSuccess(res) {
     return { type: types.GET_TODOS_SUCCESS, res };
@@ -12,8 +12,8 @@ export function getTodolistError(err) {
 
 export function getTodolist() {
     return (dispatch, getState) => {
+        const url = 'https://todolist-websql-default-rtdb.firebaseio.com/todos.json';
         if(window.navigator.onLine) {
-            const url = 'https://todolist-websql-default-rtdb.firebaseio.com/todos.json';
             request
             .get(url)
             .set({ 'Content-Type': 'application/json' })
@@ -46,8 +46,10 @@ export function addTodoError(err) {
 
 export function addTodo(todo, success) {
     return (dispatch, getState) => {
-        request
-            .post('https://todolist-websql-default-rtdb.firebaseio.com/todos.json')
+        const url = 'https://todolist-websql-default-rtdb.firebaseio.com/todos.json';
+        if(window.navigator.onLine) {
+            request
+            .post(url)
             .send(todo)
             .end((err, res) => {
                 if(err) {
@@ -56,6 +58,12 @@ export function addTodo(todo, success) {
                 if(success) success();
                 dispatch(addTodoSuccess());
             })
+        } else {
+            dispatch(addTodoSuccess());
+            dispatch(addToSync(url, 'POST', todo, () => {
+                if(success) success();
+            }));
+        }
     }
 }
 
@@ -69,7 +77,8 @@ export function deleteTodoError(err) {
 
 export function deleteTodo(firebaseID, success) {
     return (dispatch, getState) => {
-        request 
+        if(window.navigator.onLine) {
+            request 
             .delete(`https://todolist-websql-default-rtdb.firebaseio.com/todos/${firebaseID}.json`)
             .end((err, res) => {
                 if(err) {
@@ -78,5 +87,9 @@ export function deleteTodo(firebaseID, success) {
                 if(success) success();
                 dispatch(deleteTodoSuccess());
             })
+        } else {
+            alert('You are offline! Please connect to internet and sync the data and then try to delete');
+            return dispatch({ type: 'DELETE_TODO_OFFLINE_ERROR' });
+        }
     }
 }
