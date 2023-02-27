@@ -21,7 +21,7 @@ export function getTodolist() {
                 const resData = JSON.parse(res.text);
                 const todolist = [];
                 for(let key in resData) {
-                    todolist.push(resData[key]);
+                    todolist.push({ todo: resData[key], firebaseID: key });
                 }
                 dispatch(getTodolistSuccess(todolist));
             });
@@ -47,6 +47,28 @@ export function addTodo(todo, success) {
                 }
                 if(success) success();
                 dispatch(addTodoSuccess());
+            })
+    }
+}
+
+export function deleteTodoSuccess() {
+    return { type: types.DELETE_TODO_SUCCESS };
+}
+
+export function deleteTodoError(err) {
+    return { type: types.DELETE_TODO_ERROR, err };
+}
+
+export function deleteTodo(firebaseID, success) {
+    return (dispatch, getState) => {
+        request 
+            .delete(`https://todolist-websql-default-rtdb.firebaseio.com/todos/${firebaseID}.json`)
+            .end((err, res) => {
+                if(err) {
+                    return dispatch(deleteTodo());
+                }
+                if(success) success();
+                dispatch(deleteTodoSuccess());
             })
     }
 }

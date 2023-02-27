@@ -1,0 +1,13 @@
+.Todo button{
+    border: none;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+.Todo button:active {
+    transform: scale(0.95);
+}
+
+.Todo {
+    font-size: 1.25em;
+}

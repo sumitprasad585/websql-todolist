@@ -29,7 +29,7 @@ export class Todolist extends Component {
         <div className="Todolist-todos">
             { empty ? <h2>No todos in the list</h2> : 
                 todolist.map(current => {
-                    return <Todo {...current} />
+                    return <Todo {...current} dispatch={dispatch} />
                 })
             }
         </div>
