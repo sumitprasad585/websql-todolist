@@ -4,7 +4,7 @@ import "./Todolist.css";
 import CreateTodoForm from "./CreateTodoForm";
 import { getTodolist } from "../actions/todolistActions";
 import Todo from './Todo';
-import { openDB } from "../actions/websqlActions";
+import { getFromDB, openDB } from "../actions/websqlActions";
 
 export class Todolist extends Component {
   constructor(props) {
@@ -18,11 +18,7 @@ export class Todolist extends Component {
 
   componentDidMount() {
     const { dispatch } = this.props;
-    if(window.navigator.onLine) {
-      dispatch(getTodolist());
-    } else {
-      // dispatch(getFromDB());
-    }
+    dispatch(getTodolist());
   }
 
   render() {

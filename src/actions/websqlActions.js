@@ -1,4 +1,5 @@
 import * as types from "../constants/websqlConstants";
+import { getTodolistSuccess } from "./todolistActions";
 
 let dbName = 'todolistDB';
 let dbDesc = 'Todolist database';
@@ -30,7 +31,7 @@ export function openDB() {
 export function storeToDB(url, todolist) {
     return (dispatch, getState) => {
         db.transaction(tx => {
-            tx.executeSql('INSERT INTO http_response(url, res) VALUES(?, ?)', [url, JSON.stringify(todolist)]);
+            tx.executeSql('REPLACE INTO http_response(url, res) VALUES(?, ?)', [url, JSON.stringify(todolist)]);
         },
         err => {
             console.error('Error inserting data into the database tables', err);
@@ -39,6 +40,25 @@ export function storeToDB(url, todolist) {
         () => {
             console.log('Data inserted successfully');
             dispatch({ type: types.INSERT_DATA_SUCCESS });
+        })
+    }
+}
+
+export function getFromDB() {
+    return (dispatch, getState) => {
+        db.transaction(tx => {
+            tx.executeSql('SELECT * FROM http_response', [], (tx, result) => {
+                const todolist = JSON.parse(result.rows[0].res);
+                dispatch(getTodolistSuccess(todolist));
+            });
+        },
+        err => {
+            console.error('Error fetching the data from database', err);
+            dispatch({ type: types.GET_FROM_DB_ERROR, err: err.message });
+        },
+        () => {
+            console.log('Data Fetched successfully from database');
+            dispatch({ type: types.GET_FROM_DB_SUCCESS });
         })
     }
 }
