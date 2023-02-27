@@ -4,7 +4,7 @@ import { addTodo, getTodolist, getTodolistSuccess } from "./todolistActions";
 import { v4 as uuid } from 'uuid';
 import { syncOff, syncOn } from "./syncActions";
 
-let dbName = 'temppDB';
+let dbName = 'todolistAppDB';
 let dbDesc = 'Todolist database';
 let dbVersion = '1.0';
 let size = 5 * 1024 * 1024; // 5 mega bytes

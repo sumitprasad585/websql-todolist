@@ -30,7 +30,6 @@ export function getTodolist() {
                 dispatch(storeToDB(url, todolist));
             });
         } else { 
-            console.log('this executed');
             dispatch(getFromDB());
         }
     }
