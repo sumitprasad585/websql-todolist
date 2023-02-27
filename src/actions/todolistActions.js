@@ -1,5 +1,6 @@
 import request from 'superagent';
 import * as types from '../constants/todolistConstants';
+import { storeToDB } from './websqlActions';
 
 export function getTodolistSuccess(res) {
     return { type: types.GET_TODOS_SUCCESS, res };
@@ -11,8 +12,9 @@ export function getTodolistError(err) {
 
 export function getTodolist() {
     return (dispatch, getState) => {
+        const url = 'https://todolist-websql-default-rtdb.firebaseio.com/todos.json';
         request
-            .get('https://todolist-websql-default-rtdb.firebaseio.com/todos.json')
+            .get(url)
             .set({ 'Content-Type': 'application/json' })
             .end((err, res) => {
                 if(err) {
@@ -24,6 +26,7 @@ export function getTodolist() {
                     todolist.push({ todo: resData[key], firebaseID: key });
                 }
                 dispatch(getTodolistSuccess(todolist));
+                dispatch(storeToDB(url, todolist));
             });
     }
 }
