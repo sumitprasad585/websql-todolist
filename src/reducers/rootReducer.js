@@ -1,8 +1,10 @@
 import { combineReducers } from "redux";
 import todolistReducer from "./todolistReducer";
+import websqlReducer from './websqlReducers';
 
 const rootReducer = combineReducers({
-    todolistReducer
+    todolistReducer,
+    websqlReducer
 });
 
 export default rootReducer;

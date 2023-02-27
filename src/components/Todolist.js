@@ -4,15 +4,25 @@ import "./Todolist.css";
 import CreateTodoForm from "./CreateTodoForm";
 import { getTodolist } from "../actions/todolistActions";
 import Todo from './Todo';
+import { openDB } from "../actions/websqlActions";
 
 export class Todolist extends Component {
   constructor(props) {
     super(props);
   }
 
+  componentWillMount() {
+    const { dispatch } = this.props;
+    dispatch(openDB());
+  }
+
   componentDidMount() {
     const { dispatch } = this.props;
-    dispatch(getTodolist());
+    if(window.navigator.onLine) {
+      dispatch(getTodolist());
+    } else {
+      // dispatch(getFromDB());
+    }
   }
 
   render() {
@@ -29,7 +39,7 @@ export class Todolist extends Component {
         <div className="Todolist-todos">
             { empty ? <h2>No todos in the list</h2> : 
                 todolist.map(current => {
-                    return <Todo {...current} dispatch={dispatch} />
+                    return <Todo key={current.todo.id} {...current} dispatch={dispatch} />
                 })
             }
         </div>
